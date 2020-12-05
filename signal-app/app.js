@@ -17,27 +17,62 @@ const {ok, serverError} = require("./response");
  */
 exports.createRoom = async (event, context) => {
   try {
-    const {roomPassword, roomType, connectionId} = JSON.parse(event.body)
-    const roomId = await save({roomPassword, roomType, connectionId});
+    const {roomPassword, roomType, connectionId, clientId} = JSON.parse(event.body)
+    const roomId = await save({
+      roomPassword,
+      roomType,
+      members: {
+        [clientId]: connectionId
+      }
+    });
     return ok(roomId);
   } catch (err) {
     return serverError(err);
   }
 };
 
+const authorize = (room, password, clientId) => (
+  !room.roomPassword ||
+  (room.roomPassword === password) ||
+  Object.keys(room.members).includes(clientId)
+);
+
 exports.getRoom = async (event, context) => {
   try {
     const {roomId} = event.pathParameters;
-    const {roomPassword: roomPasswordInput} = JSON.parse(event.body) || {}
+    const {password: passwordInput, clientId: clientIdInput, connectionId} = JSON.parse(event.body) || {}
     const room = await get(roomId);
 
-    if(room == null) return notFound()
+    if (room == null) {
+      return notFound()
+    }
 
-    const {roomPassword, roomType, connectionId} = JSON.parse(room);
+    const roomInfo = JSON.parse(room);
 
-    if (roomPassword && roomPassword !== roomPasswordInput) return forbidden();
+    if (!roomInfo.members[clientIdInput] && Object.keys(roomInfo.members).length >= 2) {
+      console.log(roomInfo);
+      return forbidden("ROOM_IS_FULL");
+    }
 
-    return ok(JSON.stringify({roomType, connectionId}));
+    if (authorize(roomInfo, passwordInput, clientIdInput)) {
+      const updatedRoom = {
+        roomId,
+        ...roomInfo,
+        members: {
+          ...roomInfo.members,
+          [clientIdInput]: connectionId
+        }
+      };
+
+      await save(updatedRoom);
+
+      return ok(JSON.stringify({
+        roomType: updatedRoom.roomType,
+        members: updatedRoom.members
+      }));
+    }
+
+    return forbidden();
   } catch (err) {
     return serverError(err);
   }

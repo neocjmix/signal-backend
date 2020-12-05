@@ -1,4 +1,12 @@
-const response = (statusCode, body) => ({statusCode: statusCode, body: body.toString()});
+const ALLOW_ORIGIN = '*';
+
+const response = (statusCode, body) => ({
+  statusCode: statusCode,
+  headers: {
+    'Access-Control-Allow-Origin': ALLOW_ORIGIN
+  },
+  body: body.toString(),
+});
 
 const error = (statusCode, err) => {
   console.error(err);
