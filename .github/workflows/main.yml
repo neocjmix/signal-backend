@@ -26,9 +26,16 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ steps.setEnv.outputs.inputRegion || steps.importEnv.outputs.react_app_region }}
-          
+          aws-region: ${{ env.INPUT_REGION }}
+
+
+      - name: AWS SAM Build
+        uses: TractorZoom/sam-cli-action@v.0.2.0
+        with:
+          sam_command: "build -t signal.sam.yaml"
+
       - name: AWS SAM Deploy
-        uses: falnyr/aws-sam-deploy-action@v1.2.1
-        env:
-          TEMPLATE: 'signal.sam.yaml'
+        uses: TractorZoom/sam-cli-action@v.0.2.0
+        with:
+          sam_command: "deploy  --no-confirm-changeset --no-progressbar"
+

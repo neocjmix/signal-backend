@@ -17,7 +17,7 @@ Resources:
   CreateRoomFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: signal-app/
+      CodeUri: src/
       Handler: app.createRoom
       Runtime: nodejs12.x
       Events:
@@ -39,7 +39,7 @@ Resources:
   GetRoomFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: signal-app/
+      CodeUri: src/
       Handler: app.getRoom
       Runtime: nodejs12.x
       Events:
